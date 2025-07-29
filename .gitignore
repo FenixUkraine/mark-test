@@ -1,0 +1,56 @@
+# Build output
+/build/
+/*.bin
+/*.elf
+/*.map
+
+# CMake generated files
+/CMakeFiles/
+/CMakeCache.txt
+/cmake_install.cmake
+/Makefile
+
+# Ninja build files
+/build.ninja
+/.ninja_deps
+/.ninja_log
+
+# VS Code settings
+.vscode/
+*.code-workspace
+
+# ESP-IDF specific
+sdkconfig
+sdkconfig.old
+project_description.json
+dependencies.lock
+
+# Default output directories (some appear in out-of-tree builds)
+/dist/
+*.pyc
+*.pyo
+__pycache__/
+
+# Flash and monitor output
+*.log
+
+# Python virtual environments
+venv/
+.env/
+env/
+
+# ESP-IDF managed components
+managed_components/
+
+# Temporary files
+*.swp
+*.swo
+*.bak
+*.tmp
+*~
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
