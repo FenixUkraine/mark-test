@@ -148,7 +148,7 @@ esp_err_t cc113l_reset(cc113l_handle_t handle);
  *     - ESP_ERR_INVALID_ARG if handle is NULL
  */
 esp_err_t cc113l_configure_ook_scanning(cc113l_handle_t handle);
-
+esp_err_t cc113l_configure_ook_receiving(cc113l_handle_t handle);
 /**
  * @brief Set frequency
  * 

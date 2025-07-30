@@ -232,6 +232,116 @@ esp_err_t cc113l_read_status(cc113l_handle_t handle, uint8_t reg, uint8_t *value
     return ret;
 }
 
+
+esp_err_t cc113l_configure_ook_receiving(cc113l_handle_t handle) {
+    if (!handle || !handle->initialized) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    
+    esp_err_t ret;
+    ret = cc113l_reset(handle);
+    if (ret != ESP_OK) return ret;
+    
+    // GDO pins
+    ret = cc113l_write_reg(handle, CC113L_IOCFG0, 0x2F);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_IOCFG1, 0x2E);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_IOCFG2, 0x2F);
+    if (ret != ESP_OK) return ret;
+    
+    // Низкий порог FIFO для быстрого срабатывания
+    ret = cc113l_write_reg(handle, CC113L_FIFOTHR, 0x07);  // 4 байта
+    if (ret != ESP_OK) return ret;
+    
+    // Переменная длина пакета, БЕЗ CRC
+    ret = cc113l_write_reg(handle, CC113L_PKTLEN, 255);
+    if (ret != ESP_OK) return ret;
+    
+    ret = cc113l_write_reg(handle, CC113L_PKTCTRL1, 0x00); // Без address check
+    if (ret != ESP_OK) return ret;
+    
+    ret = cc113l_write_reg(handle, CC113L_PKTCTRL0, 0x40); // Переменная длина, БЕЗ CRC
+    if (ret != ESP_OK) return ret;
+    
+    // Частота 418MHz
+    ret = cc113l_write_reg(handle, CC113L_FREQ2, 0x0F);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_FREQ1, 0xEE);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_FREQ0, 0xF5);
+    if (ret != ESP_OK) return ret;
+    
+    // Умеренная полоса канала для хорошей чувствительности
+    ret = cc113l_write_reg(handle, CC113L_MDMCFG4, 0x5C);  // BW ~58kHz
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_MDMCFG3, 0x47);  // 8.1 kBaud
+    if (ret != ESP_OK) return ret;
+    
+    // OOK БЕЗ синхронизации
+    ret = cc113l_write_reg(handle, CC113L_MDMCFG2, 0x30);  // OOK, NO sync
+    if (ret != ESP_OK) return ret;
+    
+    ret = cc113l_write_reg(handle, CC113L_MDMCFG1, 0x02);  // Минимальная преамбула
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_MDMCFG0, 0xF8);
+    if (ret != ESP_OK) return ret;
+    
+    // БЕЗ sync word
+    ret = cc113l_write_reg(handle, CC113L_SYNC1, 0x00);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_SYNC0, 0x00);
+    if (ret != ESP_OK) return ret;
+    
+    ret = cc113l_write_reg(handle, CC113L_DEVIATN, 0x47);
+    if (ret != ESP_OK) return ret;
+    
+    // State machine - остаемся в RX
+    ret = cc113l_write_reg(handle, CC113L_MCSM2, 0x07);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_MCSM1, 0x30);    // Stay in RX, no CCA
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_MCSM0, 0x14);
+    if (ret != ESP_OK) return ret;
+    
+    ret = cc113l_write_reg(handle, CC113L_FOCCFG, 0x00);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_BSCFG, 0x00);
+    if (ret != ESP_OK) return ret;
+    
+    // Настройки AGC для хорошей чувствительности но не максимальной
+    ret = cc113l_write_reg(handle, CC113L_AGCCTRL2, 0x07); // Хорошее усиление
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_AGCCTRL1, 0x40);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_AGCCTRL0, 0x91);
+    if (ret != ESP_OK) return ret;
+    
+    // Calibration
+    ret = cc113l_write_reg(handle, CC113L_RESERVED_0x20, 0xFB);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_FREND1, 0x56);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_FSCAL3, 0xE9);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_FSCAL2, 0x2A);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_FSCAL1, 0x00);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_FSCAL0, 0x1F);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_TEST2, 0x81);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_TEST1, 0x35);
+    if (ret != ESP_OK) return ret;
+    ret = cc113l_write_reg(handle, CC113L_TEST0, 0x09);
+    if (ret != ESP_OK) return ret;
+    
+    ESP_LOGI(TAG, "CC113L configured for SIGNAL-ONLY mode (no CRC, no sync)");
+    return ESP_OK;
+}
+
+
 esp_err_t cc113l_configure_ook_scanning(cc113l_handle_t handle) {
     if (!handle || !handle->initialized) {
         return ESP_ERR_INVALID_ARG;
