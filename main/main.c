@@ -150,8 +150,8 @@ void frequency_scanner_task(void *pvParameters) {
         // Free allocated memory
         free(results);
         
-        ESP_LOGI(TAG, "Scan finished. Restarting scan in 10 seconds...");
-        vTaskDelay(pdMS_TO_TICKS(10000)); // Wait 10 seconds before restart
+        ESP_LOGI(TAG, "Scan finished. Restarting scan in 1 seconds...");
+        vTaskDelay(pdMS_TO_TICKS(1000)); // Wait 10 seconds before restart
     }
     
     // Cleanup
